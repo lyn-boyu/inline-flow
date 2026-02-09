@@ -9,28 +9,29 @@ export function resolvePrimaryInput(
   selectionText?: string,
   clipboardText?: string
 ): { primaryInput?: string; error?: string } {
-  // Check if selectionText is available
+  const selectionConfig = skill.inputs.selectionText;
+
+  // 1. If selectionText is required, check it first
+  if (selectionConfig?.required) {
+    if (!selectionText) {
+      return {
+        error: `Selection required. "${skill.name}" requires selected text as input.`
+      };
+    }
+    return { primaryInput: selectionText };
+  }
+
+  // 2. If selectionText is not required, use priority order
   if (selectionText) {
     return { primaryInput: selectionText };
   }
 
-  // Check if clipboardText can be used as primary
-  const clipboardConfig = skill.inputs.clipboardText;
-  const allowAsPrimary = clipboardConfig?.allowAsPrimary !== false;
-
-  if (clipboardText && allowAsPrimary) {
+  if (clipboardText) {
     return { primaryInput: clipboardText };
   }
 
-  // Check if selectionText is required
-  const selectionConfig = skill.inputs.selectionText;
-  if (selectionConfig?.required) {
-    return {
-      error: `请先选中文本。\n\n"${skill.name}" 需要选中的文本作为输入。\n\n提示：如果某些应用无法获取选中内容，可以先复制文本到剪贴板。`
-    };
-  }
-
+  // 3. No valid input available
   return {
-    error: `没有可用的输入。\n\n请选中文本或复制内容到剪贴板后再试。`
+    error: `No valid input. Please select text or copy content to clipboard.`
   };
 }

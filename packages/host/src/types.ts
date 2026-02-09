@@ -1,22 +1,24 @@
 // Core type definitions for Inline Flow Host
 
-export interface Skill {
+// Level 1: Lightweight metadata for skill selection (used by GET /api/skills)
+export interface SkillMetadata {
   id: string;
   name: string;
+  description: string;
   version: string;
-  tags: string[];
   inputs: {
     selectionText?: {
       required?: boolean;
-      optional?: boolean;
-      allowAsPrimary?: boolean;
     };
     clipboardText?: {
       required?: boolean;
-      optional?: boolean;
-      allowAsPrimary?: boolean;
     };
   };
+}
+
+// Level 2: Complete skill definition (used by POST /api/run)
+export interface Skill extends SkillMetadata {
+  tags: string[];
   llm: {
     provider: 'openai' | 'anthropic';
     model: string;

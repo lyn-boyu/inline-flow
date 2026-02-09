@@ -1,5 +1,6 @@
 import { Hono } from 'hono';
 import { runHandler } from './src/api/run';
+import { skillsHandler } from './src/api/skills';
 
 const app = new Hono();
 
@@ -25,6 +26,7 @@ app.use('/api/*', async (c, next) => {
 });
 
 // API routes
+app.get('/api/skills', skillsHandler);
 app.post('/api/run', runHandler);
 
 // Health check

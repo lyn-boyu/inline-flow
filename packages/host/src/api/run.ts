@@ -1,6 +1,6 @@
 import type { Context } from 'hono';
 import type { RunRequest, RunResponse, RecordMetadata } from '../types';
-import { parseSkill } from '../lib/skill-parser';
+import { skillLoader } from '../lib/skill-loader';
 import { resolvePrimaryInput } from '../lib/input-resolver';
 import { renderTemplate } from '../lib/template';
 import { computeCacheKey, loadCacheIndex, saveCacheIndex, getCachedRecord, updateCacheIndex } from '../lib/cache';
@@ -19,8 +19,8 @@ export async function runHandler(c: Context) {
     const body: RunRequest = await c.req.json();
     const { skillId, selectionText, clipboardText, frontmostApp, force } = body;
 
-    // Load skill definition
-    const skill = await parseSkill(expandedVaultDir, skillId);
+    // Load full skill definition (Level 2 - triggered execution)
+    const skill = await skillLoader.loadFullSkill(skillId, expandedVaultDir);
 
     // Resolve primary input
     const { primaryInput, error } = resolvePrimaryInput(skill, selectionText, clipboardText);

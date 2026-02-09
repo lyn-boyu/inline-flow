@@ -6,7 +6,16 @@ interface Preferences {
   apiKey: string;
 }
 
-export async function callHostRun(request: RunRequest): Promise<RunResponse> {
+/**
+ * Generic API call function for Host communication
+ */
+export async function callHostApi<T>(
+  endpoint: string,
+  options?: {
+    method?: "GET" | "POST";
+    body?: any;
+  }
+): Promise<T> {
   const prefs = getPreferenceValues<Preferences>();
 
   if (!prefs.hostUrl) {
@@ -17,13 +26,13 @@ export async function callHostRun(request: RunRequest): Promise<RunResponse> {
     throw new Error("Host URL not configured");
   }
 
-  const response = await fetch(`${prefs.hostUrl}/api/run`, {
-    method: "POST",
+  const response = await fetch(`${prefs.hostUrl}${endpoint}`, {
+    method: options?.method || "GET",
     headers: {
       Authorization: `Bearer ${prefs.apiKey}`,
       "Content-Type": "application/json",
     },
-    body: JSON.stringify(request),
+    body: options?.body ? JSON.stringify(options.body) : undefined,
   });
 
   if (response.status === 401) {
@@ -35,12 +44,27 @@ export async function callHostRun(request: RunRequest): Promise<RunResponse> {
   }
 
   if (!response.ok) {
+    // Try to parse error message from response
+    const errorData = (await response.json().catch(() => ({}))) as { error?: string };
+    const errorMessage = errorData.error || `HTTP ${response.status}`;
+
     await showToast({
       style: Toast.Style.Failure,
-      title: `Error ${response.status}`,
+      title: "Error",
+      message: errorMessage,
     });
-    throw new Error(`HTTP ${response.status}`);
+    throw new Error(errorMessage);
   }
 
-  return await response.json();
+  return (await response.json()) as T;
+}
+
+/**
+ * Convenience function for running a skill
+ */
+export async function callHostRun(request: RunRequest): Promise<RunResponse> {
+  return callHostApi<RunResponse>("/api/run", {
+    method: "POST",
+    body: request,
+  });
 }

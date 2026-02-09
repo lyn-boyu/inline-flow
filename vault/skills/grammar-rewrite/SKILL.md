@@ -1,6 +1,7 @@
 ---
-id: grammar.rewrite
+id: grammar-rewrite
 name: Grammar · Rewrite
+description: Rewrite sentences to be more natural and grammatically correct
 version: 0.1.0
 tags: [grammar, rewrite, english]
 
