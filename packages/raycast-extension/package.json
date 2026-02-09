@@ -1,0 +1,67 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "inline-flow",
+  "title": "Inline Flow",
+  "description": "Run versioned skills on your current context — inline.",
+  "icon": "command-icon.png",
+  "author": "linn",
+  "categories": ["Productivity"],
+  "license": "MIT",
+  "version": "0.1.0",
+  "commands": [
+    {
+      "name": "run-last-skill",
+      "title": "Run Last Skill",
+      "description": "Execute the currently selected skill",
+      "mode": "view"
+    },
+    {
+      "name": "cycle-skill",
+      "title": "Cycle Skill",
+      "description": "Switch to the next skill without executing",
+      "mode": "no-view"
+    },
+    {
+      "name": "run-skill-picker",
+      "title": "Run Skill (Picker)",
+      "description": "Select and execute a skill",
+      "mode": "view"
+    }
+  ],
+  "preferences": [
+    {
+      "name": "hostUrl",
+      "type": "textfield",
+      "required": true,
+      "title": "Host URL",
+      "description": "Local Bun Host URL (e.g., http://127.0.0.1:8787)",
+      "default": "http://127.0.0.1:8787"
+    },
+    {
+      "name": "apiKey",
+      "type": "password",
+      "required": true,
+      "title": "API Key",
+      "description": "Host API Key for authentication"
+    }
+  ],
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "fix-lint": "ray lint --fix",
+    "lint": "ray lint",
+    "publish": "ray publish"
+  },
+  "dependencies": {
+    "@raycast/api": "^1.104.5"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^2.1.1",
+    "@types/node": "^25.2.2",
+    "@types/react": "^19.2.13",
+    "eslint": "^10.0.0",
+    "prettier": "^3.8.1",
+    "react": "^19.2.4",
+    "typescript": "^5.9.3"
+  }
+}
