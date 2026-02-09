@@ -1,8 +1,14 @@
 {
   "c707eea3a6fb186d8eadbf9caff2a314169437d9a020ed7a447eef7d5c8bab31": {
-    "recordPath": "records/vocab-pronunciation/2026-02-09_00-05-21__toast.md",
+    "recordPath": "records/vocab-pronunciation/2026-02-09_00-36-45__toast.md",
     "skillId": "vocab.pronunciation",
     "skillVersion": "0.1.0",
-    "updatedAt": "2026-02-09_00-05-21"
+    "updatedAt": "2026-02-09_00-36-45"
+  },
+  "34f27eccbe72c97b3e9fc2f1a2ff2fc072fadb4f689c317d02a0ed4cb9286943": {
+    "recordPath": "records/sentence-polish/2026-02-09_00-36-17__toast__2.md",
+    "skillId": "sentence.polish",
+    "skillVersion": "0.1.0",
+    "updatedAt": "2026-02-09_00-36-17"
   }
 }

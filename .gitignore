@@ -41,3 +41,4 @@ bun-debug.log*
 # Cache
 .cache/
 *.cache
+vault/records/*
