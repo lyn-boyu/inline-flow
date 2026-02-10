@@ -4,8 +4,10 @@ import { skillLoader } from '../lib/skill-loader';
 import { resolvePrimaryInput } from '../lib/input-resolver';
 import { renderTemplate } from '../lib/template';
 import { computeCacheKey, loadCacheIndex, saveCacheIndex, getCachedRecord, updateCacheIndex } from '../lib/cache';
-import { ensureVaultDirs, generateRecordPath, writeRecord } from '../lib/vault';
+import { ensureVaultDirs, generateRecordPath, writeRecord, computeTargetPath, renameRecord, extractSlugFromPath } from '../lib/vault';
 import { callLLM } from '../lib/llm-client';
+import { join } from 'path';
+import { unlink } from 'fs/promises';
 
 /**
  * Handle POST /api/run requests
@@ -32,18 +34,32 @@ export async function runHandler(c: Context) {
     // Compute cache key
     const cacheKey = computeCacheKey(skill.id, skill.version, primaryInput);
 
-    // Load cache index
-    const cacheIndex = await loadCacheIndex(expandedVaultDir);
+    // Load cache index (per-skill file)
+    const cacheIndex = await loadCacheIndex(expandedVaultDir, skill.id);
 
     // Check cache (if force=false)
     if (!force) {
       const cachedContent = await getCachedRecord(expandedVaultDir, cacheKey, cacheIndex);
       if (cachedContent) {
         const entry = cacheIndex.get(cacheKey)!;
+        let finalPath = entry.recordPath;
+
+        // LRU rename: if lruRename: true, rename file to today's date prefix if needed
+        if (skill.record?.lruRename && skill.record?.filename) {
+          const slug = extractSlugFromPath(entry.recordPath);
+          const todayPath = computeTargetPath(skill.id, skill.record.filename, slug);
+          if (todayPath !== entry.recordPath) {
+            await renameRecord(expandedVaultDir, entry.recordPath, todayPath);
+            updateCacheIndex(cacheIndex, cacheKey, todayPath, skill.id, skill.version);
+            await saveCacheIndex(expandedVaultDir, cacheIndex, skill.id);
+            finalPath = todayPath;
+          }
+        }
+
         const response: RunResponse = {
           ok: true,
           cached: true,
-          finalPath: entry.recordPath,
+          finalPath,
           content: cachedContent,
         };
         return c.json(response);
@@ -82,7 +98,7 @@ export async function runHandler(c: Context) {
       skillVersion: skill.version,
       tags: skill.tags,
       source: {
-        frontmostApp,
+        ...(frontmostApp ? { frontmostApp } : {}),
       },
       input: {
         selectionText: primaryInput,
@@ -90,12 +106,23 @@ export async function runHandler(c: Context) {
       cachedFrom: '',
     };
 
+    // Clean up old file if lruRename is on and the path changed (e.g. new date prefix)
+    if (skill.record?.lruRename) {
+      const existingEntry = cacheIndex.get(cacheKey);
+      if (existingEntry && existingEntry.recordPath !== recordPath) {
+        const oldFullPath = join(expandedVaultDir, existingEntry.recordPath);
+        if (await Bun.file(oldFullPath).exists()) {
+          await unlink(oldFullPath);
+        }
+      }
+    }
+
     // Write record
     await writeRecord(expandedVaultDir, recordPath, metadata, llmResponse);
 
     // Update cache index
     updateCacheIndex(cacheIndex, cacheKey, recordPath, skill.id, skill.version);
-    await saveCacheIndex(expandedVaultDir, cacheIndex);
+    await saveCacheIndex(expandedVaultDir, cacheIndex, skill.id);
 
     // Read the written file to get the full content with frontmatter
     const fullContent = await Bun.file(expandedVaultDir + '/' + recordPath).text();

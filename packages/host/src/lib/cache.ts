@@ -17,10 +17,10 @@ export function computeCacheKey(
 }
 
 /**
- * Load the cache index from _cache/index.json
+ * Load the cache index for a specific skill from _cache/<skillId>.json
  */
-export async function loadCacheIndex(vaultDir: string): Promise<Map<string, CacheEntry>> {
-  const indexPath = join(vaultDir, '_cache', 'index.json');
+export async function loadCacheIndex(vaultDir: string, skillId: string): Promise<Map<string, CacheEntry>> {
+  const indexPath = join(vaultDir, '_cache', `${skillId}.json`);
   const file = Bun.file(indexPath);
 
   if (!(await file.exists())) {
@@ -36,13 +36,14 @@ export async function loadCacheIndex(vaultDir: string): Promise<Map<string, Cach
 }
 
 /**
- * Save the cache index to _cache/index.json
+ * Save the cache index for a specific skill to _cache/<skillId>.json
  */
 export async function saveCacheIndex(
   vaultDir: string,
-  index: Map<string, CacheEntry>
+  index: Map<string, CacheEntry>,
+  skillId: string
 ): Promise<void> {
-  const indexPath = join(vaultDir, '_cache', 'index.json');
+  const indexPath = join(vaultDir, '_cache', `${skillId}.json`);
   const data = Object.fromEntries(index);
   await Bun.write(indexPath, JSON.stringify(data, null, 2));
 }

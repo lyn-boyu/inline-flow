@@ -104,9 +104,10 @@ export class SkillLoader {
       llm: data.llm,
       secrets: data.secrets,
       prompt: {
-        system: systemMatch[1].trim(),
-        user: userMatch[1].trim(),
+        system: systemMatch[1]!.trim(),
+        user: userMatch[1]!.trim(),
       },
+      record: data.record,
     };
 
     // Validate required fields

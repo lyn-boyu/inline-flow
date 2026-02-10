@@ -31,6 +31,11 @@ export interface Skill extends SkillMetadata {
     system: string;
     user: string;
   };
+  record?: {
+    filename?: string;    // Template: supports {date}, {timestamp}, {slug}. Default: "{timestamp}__{slug}"
+    overwrite?: boolean;  // If true, overwrite same-named file. Default: false (append __2, __3)
+    lruRename?: boolean;  // If true, rename file to today's date prefix on each access ("touch on access")
+  };
 }
 
 export interface RunRequest {
