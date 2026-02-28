@@ -108,6 +108,8 @@ export class SkillLoader {
         user: userMatch[1]!.trim(),
       },
       record: data.record,
+      pre_tool_cmds: data.pre_tool_cmds || [],
+      skillDir: skillPath.replace(/\/SKILL\.md$/, ''),
     };
 
     // Validate required fields
