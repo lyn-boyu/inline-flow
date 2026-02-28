@@ -50,4 +50,4 @@ venv/
 *.pyc
 __pycache__/
 
-docs/
+docs/packages/host/.claude/
