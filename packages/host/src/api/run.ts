@@ -6,6 +6,7 @@ import { renderTemplate } from '../lib/template';
 import { computeCacheKey, loadCacheIndex, saveCacheIndex, getCachedRecord, updateCacheIndex } from '../lib/cache';
 import { ensureVaultDirs, generateRecordPath, writeRecord, computeTargetPath, renameRecord, extractSlugFromPath } from '../lib/vault';
 import { callLLM } from '../lib/llm-client';
+import { runPreToolCmds } from '../lib/pre-tool-executor';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 
@@ -69,12 +70,35 @@ export async function runHandler(c: Context) {
     // Ensure vault directories exist
     await ensureVaultDirs(expandedVaultDir, skill.id);
 
+    // Execute pre-tool commands if configured
+    let preToolOutput = '';
+    if (skill.pre_tool_cmds && skill.pre_tool_cmds.length > 0 && skill.skillDir) {
+      try {
+        preToolOutput = await runPreToolCmds(skill.skillDir, skill.pre_tool_cmds, {
+          selectionText: primaryInput,
+          clipboardText,
+          frontmostApp,
+        });
+      } catch (error) {
+        console.error('[pre_tool_cmds] Execution failed:', error);
+        return c.json({
+          ok: false,
+          error: `Pre-tool script execution failed: ${error instanceof Error ? error.message : String(error)}`
+        }, 500);
+      }
+    }
+
     // Render templates
-    const systemPrompt = renderTemplate(skill.prompt.system, {
+    const baseSystemPrompt = renderTemplate(skill.prompt.system, {
       selectionText: primaryInput,
       clipboardText,
       frontmostApp,
     });
+
+    // Inject pre-tool output into system prompt
+    const systemPrompt = preToolOutput
+      ? `${baseSystemPrompt}\n\n${preToolOutput}`
+      : baseSystemPrompt;
 
     const userPrompt = renderTemplate(skill.prompt.user, {
       selectionText: primaryInput,
