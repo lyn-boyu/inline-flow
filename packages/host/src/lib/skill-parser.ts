@@ -28,14 +28,15 @@ export async function parseSkill(vaultDir: string, skillId: string): Promise<Ski
   const skill: Skill = {
     id: data.id,
     name: data.name,
+    description: data.description,
     version: data.version,
     tags: data.tags || [],
     inputs: data.inputs || {},
     llm: data.llm,
     secrets: data.secrets,
     prompt: {
-      system: systemMatch[1].trim(),
-      user: userMatch[1].trim(),
+      system: systemMatch[1]!.trim(),
+      user: userMatch[1]!.trim(),
     },
   };
 
