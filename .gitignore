@@ -44,5 +44,10 @@ bun-debug.log*
 vault/records/
 vault/_cache/
 
+# Python virtual environments
+.venv/
+venv/
+*.pyc
+__pycache__/
 
 docs/
