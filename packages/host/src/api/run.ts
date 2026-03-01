@@ -6,6 +6,7 @@ import { renderTemplate } from '../lib/template';
 import { computeCacheKey, loadCacheIndex, saveCacheIndex, getCachedRecord, updateCacheIndex } from '../lib/cache';
 import { ensureVaultDirs, generateRecordPath, writeRecord, computeTargetPath, renameRecord, extractSlugFromPath } from '../lib/vault';
 import { callLLM } from '../lib/llm-client';
+import { estimateCost } from '../lib/pricing';
 import { runPreToolCmds } from '../lib/pre-tool-executor';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
@@ -109,6 +110,13 @@ export async function runHandler(c: Context) {
     // Call LLM
     const llmResponse = await callLLM(skill, systemPrompt, userPrompt);
 
+    // Calculate cost
+    const estimatedCost = estimateCost(
+      skill.llm.provider,
+      skill.llm.model,
+      llmResponse.usage
+    );
+
     // Generate record path
     const recordPath = await generateRecordPath(expandedVaultDir, skill, primaryInput);
 
@@ -121,6 +129,23 @@ export async function runHandler(c: Context) {
       skillId: skill.id,
       skillVersion: skill.version,
       tags: skill.tags,
+
+      // LLM configuration
+      llm: {
+        provider: skill.llm.provider,
+        model: skill.llm.model,
+        temperature: skill.llm.temperature,
+      },
+
+      // Usage metrics
+      usage: {
+        durationMs: llmResponse.durationMs,
+        promptTokens: llmResponse.usage.promptTokens,
+        completionTokens: llmResponse.usage.completionTokens,
+        totalTokens: llmResponse.usage.totalTokens,
+        estimatedCost,
+      },
+
       source: {
         ...(frontmostApp ? { frontmostApp } : {}),
       },
@@ -142,7 +167,7 @@ export async function runHandler(c: Context) {
     }
 
     // Write record
-    await writeRecord(expandedVaultDir, recordPath, metadata, llmResponse);
+    await writeRecord(expandedVaultDir, recordPath, metadata, llmResponse.content);
 
     // Update cache index
     updateCacheIndex(cacheIndex, cacheKey, recordPath, skill.id, skill.version);

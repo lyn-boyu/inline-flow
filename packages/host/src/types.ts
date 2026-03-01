@@ -69,11 +69,40 @@ export interface CacheEntry {
   updatedAt: string;
 }
 
+export interface TokenUsage {
+  promptTokens: number;
+  completionTokens: number;
+  totalTokens: number;
+}
+
+export interface LLMResponse {
+  content: string;
+  usage: TokenUsage;
+  durationMs: number;
+}
+
 export interface RecordMetadata {
   createdAt: string;
   skillId: string;
   skillVersion: string;
   tags: string[];
+
+  // LLM configuration
+  llm: {
+    provider: string;
+    model: string;
+    temperature: number;
+  };
+
+  // Usage metrics
+  usage: {
+    durationMs: number;
+    promptTokens: number;
+    completionTokens: number;
+    totalTokens: number;
+    estimatedCost: number;  // USD
+  };
+
   source: {
     frontmostApp?: string;
   };

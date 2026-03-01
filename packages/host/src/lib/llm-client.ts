@@ -1,4 +1,4 @@
-import type { Skill } from '../types';
+import type { Skill, LLMResponse } from '../types';
 
 /**
  * Call LLM API based on skill configuration
@@ -7,7 +7,7 @@ export async function callLLM(
   skill: Skill,
   systemPrompt: string,
   userPrompt: string
-): Promise<string> {
+): Promise<LLMResponse> {
   const apiKey = process.env[skill.secrets.apiKeyEnv];
 
   if (!apiKey) {
@@ -47,7 +47,9 @@ async function callOpenAI(
   systemPrompt: string,
   userPrompt: string,
   temperature: number
-): Promise<string> {
+): Promise<LLMResponse> {
+  const startTime = Date.now();
+
   const response = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -70,7 +72,17 @@ async function callOpenAI(
   }
 
   const data = await response.json() as any;
-  return data.choices[0].message.content;
+  const durationMs = Date.now() - startTime;
+
+  return {
+    content: data.choices[0].message.content,
+    usage: {
+      promptTokens: data.usage?.prompt_tokens || 0,
+      completionTokens: data.usage?.completion_tokens || 0,
+      totalTokens: data.usage?.total_tokens || 0,
+    },
+    durationMs,
+  };
 }
 
 /**
@@ -82,7 +94,9 @@ async function callAnthropic(
   systemPrompt: string,
   userPrompt: string,
   temperature: number
-): Promise<string> {
+): Promise<LLMResponse> {
+  const startTime = Date.now();
+
   const response = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: {
@@ -107,7 +121,17 @@ async function callAnthropic(
   }
 
   const data = await response.json() as any;
-  return data.content[0].text;
+  const durationMs = Date.now() - startTime;
+
+  return {
+    content: data.content[0].text,
+    usage: {
+      promptTokens: data.usage?.input_tokens || 0,
+      completionTokens: data.usage?.output_tokens || 0,
+      totalTokens: (data.usage?.input_tokens || 0) + (data.usage?.output_tokens || 0),
+    },
+    durationMs,
+  };
 }
 
 /**
@@ -119,7 +143,9 @@ async function callGoogle(
   systemPrompt: string,
   userPrompt: string,
   temperature: number
-): Promise<string> {
+): Promise<LLMResponse> {
+  const startTime = Date.now();
+
   // Google Gemini API endpoint
   // Format: https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent?key={apiKey}
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
@@ -156,6 +182,7 @@ async function callGoogle(
   }
 
   const data = await response.json() as any;
+  const durationMs = Date.now() - startTime;
 
   // Extract text from Gemini response
   // Response format: { candidates: [{ content: { parts: [{ text: "..." }] } }] }
@@ -168,7 +195,15 @@ async function callGoogle(
     throw new Error('Google API returned invalid response structure');
   }
 
-  return candidate.content.parts[0].text;
+  return {
+    content: candidate.content.parts[0].text,
+    usage: {
+      promptTokens: data.usageMetadata?.promptTokenCount || 0,
+      completionTokens: data.usageMetadata?.candidatesTokenCount || 0,
+      totalTokens: data.usageMetadata?.totalTokenCount || 0,
+    },
+    durationMs,
+  };
 }
 
 /**
@@ -181,7 +216,9 @@ async function callAzureOpenAI(
   systemPrompt: string,
   userPrompt: string,
   temperature: number
-): Promise<string> {
+): Promise<LLMResponse> {
+  const startTime = Date.now();
+
   const endpoint = process.env.AZURE_OPENAI_ENDPOINT;
 
   if (!endpoint) {
@@ -214,7 +251,17 @@ async function callAzureOpenAI(
   }
 
   const data = await response.json() as any;
-  return data.choices[0].message.content;
+  const durationMs = Date.now() - startTime;
+
+  return {
+    content: data.choices[0].message.content,
+    usage: {
+      promptTokens: data.usage?.prompt_tokens || 0,
+      completionTokens: data.usage?.completion_tokens || 0,
+      totalTokens: data.usage?.total_tokens || 0,
+    },
+    durationMs,
+  };
 }
 
 /**
@@ -226,7 +273,9 @@ async function callCohere(
   systemPrompt: string,
   userPrompt: string,
   temperature: number
-): Promise<string> {
+): Promise<LLMResponse> {
+  const startTime = Date.now();
+
   // Cohere uses preamble for system prompt
   const response = await fetch('https://api.cohere.ai/v1/chat', {
     method: 'POST',
@@ -249,7 +298,17 @@ async function callCohere(
   }
 
   const data = await response.json() as any;
-  return data.text;
+  const durationMs = Date.now() - startTime;
+
+  return {
+    content: data.text,
+    usage: {
+      promptTokens: data.meta?.tokens?.input_tokens || 0,
+      completionTokens: data.meta?.tokens?.output_tokens || 0,
+      totalTokens: (data.meta?.tokens?.input_tokens || 0) + (data.meta?.tokens?.output_tokens || 0),
+    },
+    durationMs,
+  };
 }
 
 /**
@@ -263,7 +322,9 @@ async function callOpenRouter(
   systemPrompt: string,
   userPrompt: string,
   temperature: number
-): Promise<string> {
+): Promise<LLMResponse> {
+  const startTime = Date.now();
+
   const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -289,5 +350,15 @@ async function callOpenRouter(
   }
 
   const data = await response.json() as any;
-  return data.choices[0].message.content;
+  const durationMs = Date.now() - startTime;
+
+  return {
+    content: data.choices[0].message.content,
+    usage: {
+      promptTokens: data.usage?.prompt_tokens || 0,
+      completionTokens: data.usage?.completion_tokens || 0,
+      totalTokens: data.usage?.total_tokens || 0,
+    },
+    durationMs,
+  };
 }
