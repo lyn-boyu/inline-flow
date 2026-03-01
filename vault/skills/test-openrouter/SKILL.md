@@ -1,9 +1,9 @@
 ---
 id: test-openrouter
-name: Test · OpenRouter
-description: Test skill using OpenRouter with Claude model
+name: Test · OpenRouter Gemini
+description: Test OpenRouter provider with Gemini model
 version: 0.1.0
-tags: [test, openrouter]
+tags: [test, openrouter, gemini]
 
 inputs:
   selectionText:
@@ -11,7 +11,7 @@ inputs:
 
 llm:
   provider: openrouter
-  model: anthropic/claude-3.5-sonnet
+  model: google/gemini-3-flash-preview
   temperature: 0.7
 
 secrets:
