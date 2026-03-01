@@ -30,6 +30,9 @@ export async function callLLM(
     case 'cohere':
       return await callCohere(apiKey, skill.llm.model, systemPrompt, userPrompt, skill.llm.temperature);
 
+    case 'openrouter':
+      return await callOpenRouter(apiKey, skill.llm.model, systemPrompt, userPrompt, skill.llm.temperature);
+
     default:
       throw new Error(`Unsupported LLM provider: ${skill.llm.provider}`);
   }
@@ -247,4 +250,44 @@ async function callCohere(
 
   const data = await response.json() as any;
   return data.text;
+}
+
+/**
+ * Call OpenRouter API
+ * OpenRouter provides unified access to multiple LLM models
+ * API is OpenAI-compatible with additional headers
+ */
+async function callOpenRouter(
+  apiKey: string,
+  model: string,
+  systemPrompt: string,
+  userPrompt: string,
+  temperature: number
+): Promise<string> {
+  const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${apiKey}`,
+      'HTTP-Referer': 'https://github.com/inline-flow/inline-flow', // Required by OpenRouter
+      'X-Title': 'Inline Flow', // Optional, for OpenRouter dashboard
+    },
+    body: JSON.stringify({
+      model,
+      messages: [
+        { role: 'system', content: systemPrompt },
+        { role: 'user', content: userPrompt },
+      ],
+      temperature,
+      max_tokens: 4096,
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`OpenRouter API error: ${response.status} - ${error}`);
+  }
+
+  const data = await response.json() as any;
+  return data.choices[0].message.content;
 }
