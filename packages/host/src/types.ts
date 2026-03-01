@@ -27,7 +27,7 @@ export interface SkillMetadata {
 export interface Skill extends SkillMetadata {
   tags: string[];
   llm: {
-    provider: 'openai' | 'anthropic' | 'google' | 'azure-openai' | 'cohere';
+    provider: 'openai' | 'anthropic' | 'google' | 'azure-openai' | 'cohere' | 'openrouter';
     model: string;
     temperature: number;
   };
