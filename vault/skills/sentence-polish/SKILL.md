@@ -2,7 +2,7 @@
 id: sentence-polish
 name: Sentence · Polish
 description: Learn natural English patterns through your own writing
-version: 0.2.0
+version: 0.3.0
 tags: [polish, learning, workplace-english]
 
 inputs:
@@ -10,12 +10,12 @@ inputs:
     required: true
 
 llm:
-  provider: openrouter
-  model: minimax/minimax-m2.5
-  temperature: 0.4
+  provider: google
+  model: gemini-3-flash-preview
+  temperature: 0.2
 
 secrets:
-  apiKeyEnv: OPENROUTER_API_KEY
+  apiKeyEnv: GOOGLE_API_KEY
 ---
 
 # System
@@ -69,6 +69,7 @@ Help them learn natural workplace English patterns through their own writing, no
 ## Rules
 - ALWAYS limit to 1 core pattern (the most impactful one)
 - Explain WHY it's non-native, not just WHAT to change
+- **MUST preserve ALL technical details from original** (tool names, feature lists, specific terms)
 - Prioritize expression-level issues over spelling/grammar
 - Use tech workplace examples in "Where Else" section
 - Keep explanations under 30 words each
