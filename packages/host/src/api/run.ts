@@ -8,6 +8,7 @@ import { ensureVaultDirs, generateRecordPath, writeRecord, computeTargetPath, re
 import { callLLM } from '../lib/llm-client';
 import { estimateCost } from '../lib/pricing';
 import { runPreToolCmds } from '../lib/pre-tool-executor';
+import { pendingTracker } from '../lib/pending-requests';
 import { join } from 'path';
 import { unlink } from 'fs/promises';
 
@@ -107,8 +108,12 @@ export async function runHandler(c: Context) {
       frontmostApp,
     });
 
-    // Call LLM
-    const llmResponse = await callLLM(skill, systemPrompt, userPrompt);
+    // Call LLM (wrapped with pending tracker to prevent duplicate calls)
+    const llmResponse = await pendingTracker.getOrExecute(
+      cacheKey,
+      async () => await callLLM(skill, systemPrompt, userPrompt),
+      force || false
+    );
 
     // Calculate cost
     const estimatedCost = estimateCost(
