@@ -1,0 +1,17 @@
+{
+  "name": "inline-flow",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "bun run dev:host & bun run dev:raycast",
+    "dev:host": "cd packages/host && bun run dev",
+    "dev:raycast": "cd packages/raycast-extension && bun run dev",
+    "build": "bun run build:host && bun run build:raycast",
+    "build:host": "cd packages/host && bun run build",
+    "build:raycast": "cd packages/raycast-extension && bun run build"
+  },
+  "workspaces": [
+    "packages/*"
+  ]
+}
